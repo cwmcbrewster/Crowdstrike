@@ -1,6 +1,8 @@
 #!/bin/zsh
 
-# Download and install the n-1 version of crowdstrike falcon for macOS.
+# Download and install the n-1 version of crowdstrike falcon for macOS. macOS 12+ only.
+
+baseUrl='https://api.us-2.crowdstrike.com'
 
 CLIENT_ID='{your_client_id}'
 CLIENT_SECRET='{your_client_secret}'
@@ -11,8 +13,6 @@ appName="Falcon.app"
 appPath="/Applications/${appName}"
 appProcessName="com.crowdstrike.falcon.Agent"
 pkgName="FalconSensorMacOS.MaverickGyr.pkg"
-
-baseUrl='https://api.us-2.crowdstrike.com'
 
 cleanup () {
   if [[ -f "${tmpDir}/${pkgName}" ]]; then
@@ -86,7 +86,6 @@ sensorVersions=$(curl -s -X GET -H "Authorization: Bearer ${accessToken}" -H 'Co
 if [[ ${osversMajor} -ge 15 ]]; then
   sensorVersion=$(/usr/bin/jq -r 'first(.resources[] | select(.build|test("\\|n-1\\|")) | .sensor_version)' <<< "${sensorVersions}")
 else
-  #sensorVersion=$(grep -A1 -E '\"build\":.+\|n-1\|' <<< "${sensorVersions}" | tail -n 1 | grep -E '\"sensor_version\"' | awk -F':' '{print $NF}' | awk -F'"' '{print $2}')
   sensorCount=$(($(/usr/bin/plutil -extract "resources" raw -o - - <<< "${sensorVersions}")-1))
   for sensor in {0.."${sensorCount}"}; do
     sensorCandidate=$(/usr/bin/plutil -extract "resources"."${sensor}".build raw -o - - <<< "${sensorVersions}")
